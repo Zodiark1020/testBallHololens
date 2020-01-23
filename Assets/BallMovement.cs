@@ -1,0 +1,58 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Microsoft.MixedReality.Toolkit.SpatialAwareness;
+using Microsoft.MixedReality.Toolkit;
+
+public class BallMovement : MonoBehaviour
+{
+    [SerializeField]
+    private Rigidbody rigidBody = null;
+    public float speed = 10;
+    private int placementDistance = 15;
+    private int maxHeight = 3;
+    private Vector3 height = Vector3.zero;
+    private const float Damp = 0.1f;
+    private void OnEnable()
+    {
+        height.y = transform.localScale.y;
+    }
+
+
+    private int GetSpatialAwarenessLayer()
+    {
+        /*MixedRealitySpatialAwarenessMeshObserverProfile spatialMappingConfig =
+            CoreServices.SpatialAwarenessSystem.ConfigurationProfile as MixedRealitySpatialAwarenessMeshObserverProfile;*/
+        var spatialAwarenessService = CoreServices.SpatialAwarenessSystem;
+        var dataProviderAccess = spatialAwarenessService as IMixedRealityDataProviderAccess;
+        var meshObserver = dataProviderAccess.GetDataProvider<IMixedRealitySpatialAwarenessMeshObserver>();
+        return meshObserver.MeshPhysicsLayer;
+    }
+
+    void FixedUpdate()
+    {
+        int spatialLayer = GetSpatialAwarenessLayer();
+        
+            if (Physics.Raycast(transform.position + rigidBody.velocity * Damp + height, Vector3.down, maxHeight, 1 << spatialLayer))
+            {
+                Debug.Log(spatialLayer);
+                Debug.DrawRay(transform.position + rigidBody.velocity * Damp + height, Vector3.down * maxHeight, Color.blue);
+
+                if (ControllerSourceManager.Instance.TryGetPointer(out Vector3 pointerPosition, out Quaternion pointerRotation))
+                {
+                    Vector3 pointerDirection = pointerRotation * Vector3.forward;
+
+                    if (Physics.Raycast(pointerPosition, pointerDirection, out RaycastHit rayHit, placementDistance, 1 << spatialLayer))
+                    {
+                        Vector3 direction = (rayHit.point - transform.position).normalized;
+                        rigidBody.AddForce(direction * speed);
+                        Debug.DrawRay(transform.position, direction * 10, Color.magenta);
+                    }
+                }
+            }
+        else
+        {
+            rigidBody.velocity = Vector3.zero;
+        }
+    }
+}
