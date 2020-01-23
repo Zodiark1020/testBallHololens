@@ -859,6 +859,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rigidBody: {fileID: 1427072335}
   speed: 10
+  fallCheckDistance: 0.2
 --- !u!1 &2046162577
 GameObject:
   m_ObjectHideFlags: 0

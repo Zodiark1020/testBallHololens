@@ -12,7 +12,8 @@ public class BallMovement : MonoBehaviour
     private int placementDistance = 15;
     private int maxHeight = 3;
     private Vector3 height = Vector3.zero;
-    private const float Damp = 0.1f;
+    [SerializeField]
+    private float fallCheckDistance = 0.2f;
     private void OnEnable()
     {
         height.y = transform.localScale.y;
@@ -32,24 +33,28 @@ public class BallMovement : MonoBehaviour
     void FixedUpdate()
     {
         int spatialLayer = GetSpatialAwarenessLayer();
-        
-            if (Physics.Raycast(transform.position + rigidBody.velocity * Damp + height, Vector3.down, maxHeight, 1 << spatialLayer))
+
+        if (Physics.Raycast(transform.position + rigidBody.velocity.normalized * fallCheckDistance + height, Vector3.down, maxHeight, 1 << spatialLayer))
+        {
+            //Debug.Log(spatialLayer);
+            Debug.DrawRay(transform.position + rigidBody.velocity.normalized * fallCheckDistance + height, Vector3.down, Color.blue);
+
+            if (ControllerSourceManager.Instance.TryGetPointer(out Vector3 pointerPosition, out Quaternion pointerRotation))
             {
-                Debug.Log(spatialLayer);
-                Debug.DrawRay(transform.position + rigidBody.velocity * Damp + height, Vector3.down * maxHeight, Color.blue);
+                Vector3 pointerDirection = pointerRotation * Vector3.forward;
 
-                if (ControllerSourceManager.Instance.TryGetPointer(out Vector3 pointerPosition, out Quaternion pointerRotation))
+                if (Physics.Raycast(pointerPosition, pointerDirection, out RaycastHit rayHit, placementDistance, 1 << spatialLayer))
                 {
-                    Vector3 pointerDirection = pointerRotation * Vector3.forward;
-
-                    if (Physics.Raycast(pointerPosition, pointerDirection, out RaycastHit rayHit, placementDistance, 1 << spatialLayer))
+                    Vector3 direction = (rayHit.point - transform.position).normalized;
+                    if (Physics.Raycast(transform.position + direction * fallCheckDistance + height, Vector3.down, maxHeight, 1 << spatialLayer))
                     {
-                        Vector3 direction = (rayHit.point - transform.position).normalized;
                         rigidBody.AddForce(direction * speed);
                         Debug.DrawRay(transform.position, direction * 10, Color.magenta);
+                        Debug.DrawRay(transform.position + direction * fallCheckDistance + height, Vector3.down, Color.red);
                     }
                 }
             }
+        }
         else
         {
             rigidBody.velocity = Vector3.zero;
