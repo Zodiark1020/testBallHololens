@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Microsoft.MixedReality.Toolkit.SpatialAwareness;
 using Microsoft.MixedReality.Toolkit;
+using Microsoft.MixedReality.Toolkit.Input;
 
-public class BallMovement : MonoBehaviour
+
+public class BallMovement : MonoBehaviour, IMixedRealityInputHandler
 {
     [SerializeField]
     private Rigidbody rigidBody = null;
@@ -17,8 +19,13 @@ public class BallMovement : MonoBehaviour
     private void OnEnable()
     {
         height.y = transform.localScale.y;
+        CoreServices.InputSystem.RegisterHandler<IMixedRealityInputHandler>(this);
     }
 
+    private void OnDisable()
+    {
+        CoreServices.InputSystem.UnregisterHandler<IMixedRealityInputHandler>(this);
+    }
 
     private int GetSpatialAwarenessLayer()
     {
@@ -59,5 +66,15 @@ public class BallMovement : MonoBehaviour
         {
             rigidBody.velocity = Vector3.zero;
         }
+    }
+
+    public void OnInputUp(InputEventData eventData)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void OnInputDown(InputEventData eventData)
+    {
+        throw new System.NotImplementedException();
     }
 }
