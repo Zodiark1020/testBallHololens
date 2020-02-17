@@ -105,7 +105,7 @@ public class BallMovement : MonoBehaviour//, IMixedRealityInputHandler//, IMixed
         {
             if (!hasFloorBelow)
             {
-                manipulation.ForceEndManipulation();
+                rigidBody.isKinematic = true;
             }
         }
         else
